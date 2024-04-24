@@ -1,18 +1,128 @@
-import datetime
+import base64
+
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.asymmetric import rsa
 
 
-def check_timestamp(timestamp):
-    # 将时间戳转换为日期时间对象
-    timestamp_datetime = datetime.datetime.fromtimestamp(timestamp)
+# 生成公私钥对
+def generate_keys():
+    private_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=1024,
+        backend=default_backend()
+    )
+    public_key = private_key.public_key()
 
-    # 获取当前时间
-    current_datetime = datetime.datetime.now()
+    # 私钥序列化并编码为Base64
+    pem_private = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption()
+    )
+    base64_private = base64.b64encode(pem_private).decode('utf-8').replace('\n', '')
 
-    # 计算时间差
-    time_difference = current_datetime - timestamp_datetime
+    # 公钥序列化并编码为Base64
+    pem_public = public_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+    base64_public = base64.b64encode(pem_public).decode('utf-8').replace('\n', '')
 
-    # 检查时间差是否大于3天
-    if time_difference.days >= 3:
-        return True
-    else:
+    return base64_private, base64_public
+
+
+# 加密
+def encrypt_message(message, base64_public_key):
+    # 解码公钥
+    public_key_data = base64.b64decode(base64_public_key.encode('utf-8'))
+    public_key = serialization.load_pem_public_key(
+        public_key_data,
+        backend=default_backend()
+    )
+
+    # 加密
+    encrypted_message = public_key.encrypt(
+        message.encode('utf-8'),
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
+    # 加密消息编码为Base64
+    return base64.b64encode(encrypted_message).decode('utf-8')
+
+
+# 解密
+def decrypt_message(encrypted_message, base64_private_key):
+    # 解码私钥
+    private_key_data = base64.b64decode(base64_private_key.encode('utf-8'))
+    private_key = serialization.load_pem_private_key(
+        private_key_data,
+        password=None,
+        backend=default_backend()
+    )
+
+    # 解密
+    decrypted_message = private_key.decrypt(
+        base64.b64decode(encrypted_message.encode('utf-8')),
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
+    return decrypted_message.decode('utf-8')
+
+
+def verify_key_pair(public_key, private_key):
+    # 测试消息
+    test_message = "test message"
+
+    try:
+        # 使用公钥加密消息
+        encrypted_message = encrypt_message(test_message, public_key)
+        # 使用私钥解密消息
+        decrypted_message = decrypt_message(encrypted_message, private_key)
+
+        # 检查解密后的消息是否与原始消息相同
+        return decrypted_message == test_message
+    except Exception as e:
+        # 如果在加密或解密过程中出现任何异常，说明公私钥不匹配
+        print("An error occurred:", str(e))
         return False
+
+
+# 使用示例
+def main_verification():
+    private_key, public_key = generate_keys()
+    print("Verification result:", verify_key_pair(public_key, private_key))
+
+
+# 主函数
+def main():
+    # 生成公私钥
+    private_key, public_key = generate_keys()
+
+    # 打印公私钥
+    print("Private Key is:", private_key)
+    print("Public Key is:", public_key)
+
+    # 待加密的信息
+    message = "Hello, RSA Encryption!"
+
+    # 加密
+    encrypted_message = encrypt_message(message, public_key)
+    print("Encrypted Message is:", encrypted_message)
+
+    # 解密
+    decrypted_message = decrypt_message(encrypted_message, private_key)
+    print("Decrypted Message is:", decrypted_message)
+
+
+if __name__ == "__main__":
+    main()
+    main_verification()

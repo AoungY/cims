@@ -20,6 +20,11 @@ from django.contrib import admin
 from django.urls import path
 from django.urls import re_path
 from django.views.static import serve
+from rest_framework.views import APIView
+
+from verifications import views
 
 urlpatterns = [
+    # JWT登陆
+    path('authorizations/', views.OrdinaryUserLoginView.as_view()),
 ]

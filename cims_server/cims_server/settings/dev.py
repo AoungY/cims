@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 import os
 import sys
+from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -99,21 +100,6 @@ DATABASES = {
     }
 }
 
-# HOST 8.138.134.118
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'HOST': '8.138.134.118',  # 数据库主机
-#         'PORT': 3390,  # 数据库端口
-#         'USER': 'cims_server',  # 数据库用户名
-#         'PASSWORD': 'Aibang715926juejin666...',  # 数据库用户密码
-#         'NAME': 'cims_server_v1',  # 数据库名字
-#         'OPTIONS': {
-#             'charset': 'utf8mb4',
-#         },
-#     }
-# }
-
 # redis配置
 # CACHES = {
 #     "default": {  #
@@ -198,7 +184,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # # 修改Django认证系统的用户模型类
 # AUTH_USER_MODEL = 'users.User'
 
-
+# djangorestframework-simplejwt配置
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+}
 
 # DRF配置
 REST_FRAMEWORK = {
@@ -206,10 +196,9 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'cims_server.utils.exceptions.exception_handler',
     # 配置全局的认证方案
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',  # JWT认证
-        'rest_framework.authentication.BasicAuthentication',  # 基本认证
-        'rest_framework.authentication.SessionAuthentication',  # session认证
+        'verifications.utils.JWTAuthentication',  # JWT认证
     ),
+
     # # 配置限流方案
     # 'DEFAULT_THROTTLE_CLASSES': [
     #     'rest_framework.throttling.AnonRateThrottle',
@@ -225,6 +214,7 @@ REST_FRAMEWORK = {
     # 分页
     # 'DEFAULT_PAGINATION_CLASS': 'meiduo_mall.utils.pagination.StandardResultsSetPagination',
 }
+
 # DRF扩展
 REST_FRAMEWORK_EXTENSIONS = {
     # 缓存时间
@@ -269,13 +259,3 @@ CORS_ORIGIN_WHITELIST = (
     "http://127.0.0.1:5173",
 )
 CORS_ALLOW_CREDENTIALS = True  # 允许携带cookie
-
-import datetime
-
-JWT_AUTH = {
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=1),  # 设置有效期
-    # 修改JWT登陆视图的构造函数
-    # 'JWT_RESPONSE_PAYLOAD_HANDLER': 'users.utils.jwt_response_payload_handler',
-    # 'JWT_PAYLOAD_HANDLER': 'user_management.utils.jwt_payload_handler_overwrite',
-}
-

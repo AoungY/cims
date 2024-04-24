@@ -1,8 +1,10 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import GovernmentUser, IdentityCard, OrdinaryUser, Passport
 
-from .models import Passport,IdentityCard
+# Register your models here.
 
 admin.site.register(Passport)
 admin.site.register(IdentityCard)
+admin.site.register(OrdinaryUser)
+admin.site.register(GovernmentUser)

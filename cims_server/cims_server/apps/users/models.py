@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+
 from utils.utils import encrypt_message
+
 
 class Base(models.Model):
     class GENDER(models.TextChoices):
@@ -11,7 +13,7 @@ class Base(models.Model):
     gender = models.CharField(max_length=1, choices=GENDER.choices, verbose_name="性别")
     birth_date = models.DateField(verbose_name="出生年月日")
     issuing_authority = models.CharField(max_length=40, verbose_name="颁发机构")
-    valid_from = models.DateField(auto_now_add=True, verbose_name="有效期起始日")
+    valid_from = models.DateField(verbose_name="有效期起始日")
     valid_to = models.DateField(verbose_name="有效期终止日")
     photo = models.ImageField(upload_to='photos/', blank=True, null=True, verbose_name="照片")  # 需要配置MEDIA_ROOT
     document_number = models.CharField(max_length=64, verbose_name="证件编号")  # 当前证件内容(除去照片和指针)字符串拼接后再进行一次sha256的值
@@ -22,24 +24,6 @@ class Base(models.Model):
 
     class Meta:
         abstract = True  # 说明是抽象模型类, 用于继承使用，数据库迁移时不会创建BaseUser的表
-
-    # def save(self, *args, **kwargs):
-    #     print(1)
-    #
-    #     current_year = datetime.date.today().year
-    #     birth_year = self.birth_date.year
-    #     age = current_year - birth_year
-    #
-    #     if age < 16:
-    #         duration = 5
-    #     elif age < 25:
-    #         duration = 10
-    #     else:
-    #         duration = 20
-    #
-    #     # 使用valid_from作为起始点来设置valid_to
-    #     self.valid_to = datetime.date(self.valid_from.year + duration, self.valid_from.month, self.valid_from.day)
-    #     super().save(*args, **kwargs)
 
 
 class IdentityCard(Base):

@@ -1,25 +1,30 @@
 import json
 
 import requests
+from django.conf import settings
+
+from cims_server.utils.utils import decrypt_message
 
 # 政府角色公私钥 长度1024
 government_private_key = "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUNkd0lCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQW1Fd2dnSmRBZ0VBQW9HQkFML0NDUkR0TlJ1bjM0UnoKVXBnSXQ4SEFZRUlnUW5XQTNJSzJhcWJ1VlByVlkzVUsveS9DL0tneEt6TFNZL2RZYXFtQXFOU3NzRHhCeUpTLwpxOFEvcUVxcWh2UG5yTHU0dUZQZlpwRHFNbXNybXhieVpZRmVFaENrNGMrOVlYK1k2dTQ5R1ZDenhTcEV2WDR5CmF4ZTJ4a1QvenJ4elFKc2ZiUlZXS2k2OHMwNUJBZ01CQUFFQ2dZRUFwYzdGd0JrYi90bmRiODIzOFRZNGpoUW0KSjRkMWI5MEl6dzJra3NzcU4rb2pvYVRzbXdQakxCdTMycTRKT21yOWI2dU1VTGt4ZWlqM280ZElvdHpZU3BhQgoyMUJwM1B0bFR3dUgwNVpwWkluTE85QUg5UWZsSVdpREtSTTNWYldCY3FPeC9MMGdMSDJBM0s5dmhvQ2l6UTNXCmxqY2NVTVNkdW0yYUZ0TDNpMEVDUVFEMTU0UTBEZEo2U0htZE1PM0lSWG9hOXJNT0ZZSTEzZmZXS2hwbkFkWEYKNG1WSDk2djl2SHhKTU9vSkVROWJTem1Oam1sQlJ3T2E3eDg3SzZTYjRuOTlBa0VBeDZGdkU3WnFBWldYRWVtLwpIUE9ySXh4akM3NGNpakF3RjY2dkpZdlhPeHBzZmV0eTh5bEF1UXQ1d25vd1UrdmluM2JsaWEwVlZmeDVrYVFCCmtUT05GUUpBRDdFRVdLWUJKbGgxbWpoREZDS0sxaW1qNTJRcitPLy9IcVYxSmRtU0lKeC94Z1hoN2NFWFZUeFAKMHVCSjBKT09TcUFweTBhU3psSXY5Z0NrOG1XVHFRSkFGMEQwd1dVVVFBNyt3L1ZvYjZUcW9ISmtEekFiL3ZUUwpCVkF4MHJ2UlhHOGRpQ1Z2QkdnZncrNVVScFVaSUExd0hvY3BBYnFKcTdSM0xNSGY5TnYrYVFKQkFJUFJZRFBJCklUaUIzV3Jmak9pWTYzQVIyYW9zbVU2cEt1cnFYL1o1Z05SRHRsL2lPdElsUUc4VkZMZTBRb1lEQWhQMmVjVzYKVW5SWDRsK2ROdVVvQS80PQotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg=="
 government_public_key = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlHZk1BMEdDU3FHU0liM0RRRUJBUVVBQTRHTkFEQ0JpUUtCZ1FDL3dna1E3VFVicDkrRWMxS1lDTGZCd0dCQwpJRUoxZ055Q3RtcW03bFQ2MVdOMUN2OHZ3dnlvTVNzeTBtUDNXR3FwZ0tqVXJMQThRY2lVdjZ2RVA2aEtxb2J6CjU2eTd1TGhUMzJhUTZqSnJLNXNXOG1XQlhoSVFwT0hQdldGL21PcnVQUmxRczhVcVJMMStNbXNYdHNaRS84NjgKYzBDYkgyMFZWaW91dkxOT1FRSURBUUFCCi0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo==="
 
-blockchain_url = 'http://localhost:5002/WeBASE-Front/trans/handle'  # 本地区块链服务地址
+# blockchain_url = 'http://localhost:5002/WeBASE-Front/trans/handle'  # 本地区块链服务地址
+# blockchain_url = 'http://175.178.154.217:5002/WeBASE-Front/trans/handle'  # 云端区块链服务地址
+blockchain_url = settings.BLOCKCHAIN['url']  # 云端区块链服务地址
 
 
 class Contract:
     def __init__(self):
-        self.contract_user_public_key = "0x24f5b700d2e66ab27468c6eeba53e25c9f4805fd"  # 区块链合约用户公钥
-        self.IdentityCard = {"contractAddress": "0xd297c9364818d5968f34fa5d0e99d5a673ce17e5",
+        self.contract_user_public_key = settings.BLOCKCHAIN['contract_user_public_key']  # 区块链合约用户公钥
+        self.IdentityCard = {"contractAddress": settings.BLOCKCHAIN['IdentityCard_contractAddress'],
                              "contractName": "IdDataStorage",
                              "funcName": {"get": "getIdDataByUserPk", "add": "addIdData"},
                              "get_contractAbi_name": "getIdDataByUserPk",
                              "inputs_name": "idData",
                              }
 
-        self.Passport = {"contractAddress": "0x1baa583e4babf6bbbef8bf0c5066aa2b4407788e",
+        self.Passport = {"contractAddress": settings.BLOCKCHAIN['Passport_contractAddress'],
                          "contractName": "PassportDataStorage",
                          "funcName": {"get": "getPassportDataByUserPk", "add": "addPassportData"},
                          "get_contractAbi_name": "getPassportDataByUserPk",
@@ -28,6 +33,7 @@ class Contract:
 
         self.now_certificate = None  # 当前操作的证件类型
         self.user_public_key = None  # 当前用户公钥
+        self.user_private_key = None  # 当前用户私钥
 
     def _get_func_param(self, certificate_str):
         """
@@ -55,6 +61,8 @@ class Contract:
         """
             根据当前用户密钥和证件雷系在区块链中获取数据
         """
+        # 判断是否有用户公钥和当前证件类型
+        if not self.user_private_key: raise Exception("user_private_key为None")
         if not self.user_public_key: raise Exception("user_public_key为None")
         if not self.now_certificate: raise Exception("now_certificate为None")
 
@@ -160,10 +168,17 @@ class Contract:
             "useCns": False,
             "cnsName": ""
         }
-        res = requests.post(blockchain_url, json=data)
-        data = json.loads(res.json()[0])
-
-        print("get_data", res.status_code, len(data), data, self.now_certificate)
+        try:
+            res = requests.post(blockchain_url, json=data)  # 发送请求
+            data = json.loads(res.json()[0])
+            for i in range(len(data)):
+                # 对item[2:]进行解密,因为前两个是公钥，不需要解密
+                # 注:这里用用户的私钥解密，因为这个加密是使用用户的公钥进行加密的
+                data[i] = [decrypt_message(_, self.user_private_key) for _ in data[i][2:]]
+            # print("get_data", res.status_code, len(data), data, self.now_certificate)
+            return data
+        except:
+            return False
 
     def add_data(self, certificate_str):
         if not self.user_public_key: raise Exception("user_public_key为None")
@@ -202,4 +217,9 @@ class Contract:
             "cnsName": ""
         }
         res = requests.post(blockchain_url, json=data)
-        print("add_data", res.status_code, res.json())
+        try:
+            # 测试是否成功，返回值是否是json格式
+            # print("add_data", res.status_code, res.json())
+            return res.status_code == 200
+        except:
+            return False

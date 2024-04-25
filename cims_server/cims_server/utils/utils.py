@@ -1,4 +1,5 @@
 import base64
+import binascii
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
@@ -43,15 +44,26 @@ def encrypt_message(message, base64_public_key):
         backend=default_backend()
     )
 
-    # 加密
-    encrypted_message = public_key.encrypt(
-        message.encode('utf-8'),
-        padding.OAEP(
-            mgf=padding.MGF1(algorithm=hashes.SHA256()),
-            algorithm=hashes.SHA256(),
-            label=None
+    try:
+        # 加密
+        encrypted_message = public_key.encrypt(
+            message.encode('utf-8'),
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
         )
-    )
+    except Exception as e:
+        encrypted_message = public_key.encrypt(
+            binascii.unhexlify(message),
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        )
+
     # 加密消息编码为Base64
     return base64.b64encode(encrypted_message).decode('utf-8')
 
@@ -75,7 +87,12 @@ def decrypt_message(encrypted_message, base64_private_key):
             label=None
         )
     )
-    return decrypted_message.decode('utf-8')
+    try:
+        # 尝试将解密后的二进制数据转换为UTF-8编码的字符串
+        return decrypted_message.decode('utf-8')
+    except:
+        # 将解密后的二进制数据转换为十六进制字符串,用于解密本身为十六进制的情况
+        return binascii.hexlify(decrypted_message).decode('utf-8')
 
 
 def verify_key_pair(public_key, private_key):
@@ -107,12 +124,13 @@ def main():
     # 生成公私钥
     private_key, public_key = generate_keys()
 
+    # public_key = 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlHZk1BMEdDU3FHU0liM0RRRUJBUVVBQTRHTkFEQ0JpUUtCZ1FDL1VWTDdoWGFPbU9Eek9hajFBWjNzdzg3bApvTjdRL0FuY0NjajhjQTdUYXUxT2w0amdUQmxSOFZVOEo5dlZkK0liN2NXc2R1UGg1TnNOcXg4NkcxQm5ZRmhXCkt3RnRJeHladjEwS2hrYmtxdm82Nys0cTJ6VzluejdrUVdh'
     # 打印公私钥
-    print("Private Key is:", private_key)
-    print("Public Key is:", public_key)
+    print("Private Key is:", len(private_key), private_key)
+    print("Public Key is:", len(public_key), public_key)
 
     # 待加密的信息
-    message = "Hello, RSA Encryption!"
+    message = "message to be encrypted"
 
     # 加密
     encrypted_message = encrypt_message(message, public_key)

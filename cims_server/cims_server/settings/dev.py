@@ -100,32 +100,6 @@ DATABASES = {
     }
 }
 
-# redis配置
-# CACHES = {
-#     "default": {  #
-#         "BACKEND": "django_redis.cache.RedisCache",
-#         "LOCATION": "redis://39.108.37.150:6379/0",
-#         "OPTIONS": {
-#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-#             "PASSWORD": 'aibang715926'
-#         }
-#     }, "session": {  # session
-#         "BACKEND": "django_redis.cache.RedisCache",
-#         "LOCATION": "redis://39.108.37.150:6379/2",
-#         "OPTIONS": {
-#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-#             "PASSWORD": 'aibang715926'
-#         }
-#     }, "cache": {  # 大体积请求体缓存
-#         "BACKEND": "django_redis.cache.RedisCache",
-#         "LOCATION": "redis://39.108.37.150:6379/3",
-#         "OPTIONS": {
-#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-#             "PASSWORD": 'aibang715926'
-#         }
-#     }
-# }
-
 # SESSION_ENGINE = "django.contrib.sessions.backends.cache"  # 设置存储到内存，但是我使用了“SESSION_CACHE_ALIAS” 就被改成了存储到redis
 # SESSION_CACHE_ALIAS = "session"  # 告诉session  redis配置的别名
 
@@ -162,7 +136,7 @@ USE_TZ = False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
-MEDIA_STATIC_URL = 'http://127.0.0.1:8000'
+MEDIA_STATIC_URL = 'http://192.168.0.124:8080'
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
@@ -259,3 +233,11 @@ CORS_ORIGIN_WHITELIST = (
     "http://127.0.0.1:5173",
 )
 CORS_ALLOW_CREDENTIALS = True  # 允许携带cookie
+
+# 区块链配置
+BLOCKCHAIN = {
+    'url': 'http://175.178.154.217:5002/WeBASE-Front/trans/handle',
+    'contract_user_public_key': "0x66a0f3ec596d2e11d84edafad4b612105639cffd",
+    'IdentityCard_contractAddress': "0xf9bc5a4e2ed935eeae3c2b0d7bdbece70f661f22",
+    'Passport_contractAddress': "0xdb78781cedacd50791d7205e835169ec9fd599ae"
+}

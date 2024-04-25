@@ -3,7 +3,7 @@ from django.conf import settings
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from utils.utils import verify_key_pair
+from cims_server.utils.utils import verify_key_pair
 from .utils import encrypt_payload
 
 

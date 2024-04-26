@@ -303,6 +303,9 @@ class CertificatesLatestView(APIView):
     """
     get->获取用户最新的证书
     """
+    # 需要登录
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         certificates, Certificate, Certificate_serializer = get_certificates(request)

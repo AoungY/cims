@@ -19,9 +19,6 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # 区块链对接测试
-    # path('test/', views.TestView.as_view()),
-
     # 政府角色接口,无需登录
     # GET->获取所有普通用户的公钥 POST->创建普通用户
     path('users/', views.UsersView.as_view()),

@@ -36,7 +36,7 @@ class UsersView(APIView):
         page = paginator.paginate_queryset(users, request, view=self)
 
         if page is not None:
-            serializer = OrdinaryUserSerializer(users, many=True)
+            serializer = OrdinaryUserSerializer(page, many=True)
             return paginator.get_paginated_response(serializer.data)
         else:
             return Response("No pages", status=status.HTTP_204_NO_CONTENT)
@@ -84,7 +84,7 @@ class UserCertificatesView(APIView):
         page = paginator.paginate_queryset(ordinary_users, request, view=self)
 
         if page is not None:
-            ordinary_user_serializer = OrdinaryUserSerializer(ordinary_users, many=True)
+            ordinary_user_serializer = OrdinaryUserSerializer(page, many=True)
             return paginator.get_paginated_response(ordinary_user_serializer.data)
         else:
             return Response("No pages", status=status.HTTP_204_NO_CONTENT)

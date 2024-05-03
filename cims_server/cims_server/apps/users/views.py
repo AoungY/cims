@@ -29,7 +29,7 @@ class UsersView(APIView):
     pagination_class = StandardResultsSetPagination
 
     def get(self, request):
-        users = OrdinaryUser.objects.all()
+        users = OrdinaryUser.objects.all().order_by('-id')
 
         # 分页处理
         paginator = self.pagination_class()
@@ -78,6 +78,8 @@ class UserCertificatesView(APIView):
         ordinary_users = [c.ordinary_user for c in certificates]
         # 去重
         ordinary_users = list(set(ordinary_users))
+        # ordinary_users根据id排降序
+        ordinary_users.sort(key=lambda x: x.id, reverse=True)
 
         # 分页处理
         paginator = self.pagination_class()
@@ -109,7 +111,7 @@ class UserSpecificCertificatesView(APIView):
         except OrdinaryUser.DoesNotExist:
             return Response("User not found", status=status.HTTP_404_NOT_FOUND)
 
-        certificates = certificate.objects.filter(ordinary_user=user)
+        certificates = certificate.objects.filter(ordinary_user=user).order_by('-valid_from', '-id')
 
         # 分页处理
         paginator = self.pagination_class()
@@ -273,6 +275,9 @@ def get_certificates(request):
 
     # 将数据解析为IdentityCard对象
     certificates = [Certificate.create_from_list(i) for i in data]
+
+    # .order_by('-valid_from', '-id')表示按照valid_from降序和id降序排列
+    certificates.sort(key=lambda x: (x.valid_from, x.id), reverse=True)
     return certificates, Certificate, Certificate_serializer
 
 
@@ -309,6 +314,9 @@ class CertificatesLatestView(APIView):
 
     def get(self, request):
         certificates, Certificate, Certificate_serializer = get_certificates(request)
+
+        if not certificates:
+            return Response("No certificates", status=status.HTTP_204_NO_CONTENT)
         # 获取最新的证书，即certificates中valid_to最大的证书
         latest_certificate = max(certificates, key=lambda x: (x.valid_to, x.id))
         return Response(Certificate_serializer(latest_certificate).data)

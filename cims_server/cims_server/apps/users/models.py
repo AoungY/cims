@@ -32,7 +32,7 @@ class IdentityCard(Base):
     id_number = models.CharField(max_length=18, verbose_name="身份证号")
 
     # 定义类属性fields
-    fields = ['id', 'name', 'gender', 'ethnicity', 'address', 'id_number',
+    fields = ['document_number', 'name', 'gender', 'ethnicity', 'address', 'id_number',
               'birth_date', 'issuing_authority', 'valid_from', 'valid_to', 'photo',
               'previous_document_number', 'next_document_number', 'another_document_number']
 
@@ -66,7 +66,7 @@ class Passport(Base):
 
     # 定义类属性fields
     fields = [
-        'id', 'name', 'gender', 'birth_date', 'nationality', 'passport_number',
+        'document_number', 'name', 'gender', 'birth_date', 'nationality', 'passport_number',
         'issuing_country', 'issuing_authority', 'valid_from', 'valid_to', 'photo',
         'previous_document_number', 'next_document_number', 'another_document_number'
     ]

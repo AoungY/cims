@@ -113,6 +113,73 @@ def verify_key_pair(public_key, private_key):
         return False
 
 
+# 对消息进行签名
+def sign_message(message, base64_private_key):
+    # 解码私钥
+    private_key_data = base64.b64decode(base64_private_key.encode('utf-8'))
+    private_key = serialization.load_pem_private_key(
+        private_key_data,
+        password=None,
+        backend=default_backend()
+    )
+
+    message = message.encode('utf-8')
+    signature = private_key.sign(
+        message,
+        padding.PSS(
+            mgf=padding.MGF1(hashes.SHA256()),
+            salt_length=padding.PSS.MAX_LENGTH
+        ),
+        hashes.SHA256()
+    )
+    # 返回Base64编码的签名
+    return base64.b64encode(signature).decode('utf-8')
+
+
+# 验证签名
+def verify_signature(message, signature, base64_public_key):
+    # 解码公钥
+    public_key_data = base64.b64decode(base64_public_key.encode('utf-8'))
+    public_key = serialization.load_pem_public_key(
+        public_key_data,
+        backend=default_backend()
+    )
+
+    message = message.encode('utf-8')
+    signature = base64.b64decode(signature)
+    try:
+        public_key.verify(
+            signature,
+            message,
+            padding.PSS(
+                mgf=padding.MGF1(hashes.SHA256()),
+                salt_length=padding.PSS.MAX_LENGTH
+            ),
+            hashes.SHA256()
+        )
+        return True
+    except Exception as e:
+        print("Verification failed:", e)
+        return False
+
+
+# 主函数
+def sign_test_main():
+    # 生成密钥
+    private_key, public_key = generate_keys()
+
+    # 待签名的消息
+    message = "This is a message to sign"
+
+    # 签名消息
+    signature = sign_message(message, private_key)
+    print("Signature:", signature)
+
+    # 验证签名
+    verification_result = verify_signature(message, signature, public_key)
+    print("Verification result:", verification_result)
+
+
 # 使用示例
 def main_verification():
     private_key, public_key = generate_keys()
@@ -123,6 +190,7 @@ def main_verification():
 def main():
     # 生成公私钥
     private_key, public_key = generate_keys()
+    # public_key, private_key = generate_keys()
 
     # public_key = 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlHZk1BMEdDU3FHU0liM0RRRUJBUVVBQTRHTkFEQ0JpUUtCZ1FDL1VWTDdoWGFPbU9Eek9hajFBWjNzdzg3bApvTjdRL0FuY0NjajhjQTdUYXUxT2w0amdUQmxSOFZVOEo5dlZkK0liN2NXc2R1UGg1TnNOcXg4NkcxQm5ZRmhXCkt3RnRJeHladjEwS2hrYmtxdm82Nys0cTJ6VzluejdrUVdh'
     # 打印公私钥
@@ -144,3 +212,4 @@ def main():
 if __name__ == "__main__":
     main()
     main_verification()
+    sign_test_main()

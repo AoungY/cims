@@ -3,11 +3,11 @@ import json
 import requests
 from django.conf import settings
 
-from cims_server.utils.utils import decrypt_message
+from cims_server.utils.utils import decrypt_message, verify_signature
 
 # 政府角色公私钥 长度1024
-government_private_key = "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUNkd0lCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQW1Fd2dnSmRBZ0VBQW9HQkFML0NDUkR0TlJ1bjM0UnoKVXBnSXQ4SEFZRUlnUW5XQTNJSzJhcWJ1VlByVlkzVUsveS9DL0tneEt6TFNZL2RZYXFtQXFOU3NzRHhCeUpTLwpxOFEvcUVxcWh2UG5yTHU0dUZQZlpwRHFNbXNybXhieVpZRmVFaENrNGMrOVlYK1k2dTQ5R1ZDenhTcEV2WDR5CmF4ZTJ4a1QvenJ4elFKc2ZiUlZXS2k2OHMwNUJBZ01CQUFFQ2dZRUFwYzdGd0JrYi90bmRiODIzOFRZNGpoUW0KSjRkMWI5MEl6dzJra3NzcU4rb2pvYVRzbXdQakxCdTMycTRKT21yOWI2dU1VTGt4ZWlqM280ZElvdHpZU3BhQgoyMUJwM1B0bFR3dUgwNVpwWkluTE85QUg5UWZsSVdpREtSTTNWYldCY3FPeC9MMGdMSDJBM0s5dmhvQ2l6UTNXCmxqY2NVTVNkdW0yYUZ0TDNpMEVDUVFEMTU0UTBEZEo2U0htZE1PM0lSWG9hOXJNT0ZZSTEzZmZXS2hwbkFkWEYKNG1WSDk2djl2SHhKTU9vSkVROWJTem1Oam1sQlJ3T2E3eDg3SzZTYjRuOTlBa0VBeDZGdkU3WnFBWldYRWVtLwpIUE9ySXh4akM3NGNpakF3RjY2dkpZdlhPeHBzZmV0eTh5bEF1UXQ1d25vd1UrdmluM2JsaWEwVlZmeDVrYVFCCmtUT05GUUpBRDdFRVdLWUJKbGgxbWpoREZDS0sxaW1qNTJRcitPLy9IcVYxSmRtU0lKeC94Z1hoN2NFWFZUeFAKMHVCSjBKT09TcUFweTBhU3psSXY5Z0NrOG1XVHFRSkFGMEQwd1dVVVFBNyt3L1ZvYjZUcW9ISmtEekFiL3ZUUwpCVkF4MHJ2UlhHOGRpQ1Z2QkdnZncrNVVScFVaSUExd0hvY3BBYnFKcTdSM0xNSGY5TnYrYVFKQkFJUFJZRFBJCklUaUIzV3Jmak9pWTYzQVIyYW9zbVU2cEt1cnFYL1o1Z05SRHRsL2lPdElsUUc4VkZMZTBRb1lEQWhQMmVjVzYKVW5SWDRsK2ROdVVvQS80PQotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg=="
-government_public_key = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlHZk1BMEdDU3FHU0liM0RRRUJBUVVBQTRHTkFEQ0JpUUtCZ1FDL3dna1E3VFVicDkrRWMxS1lDTGZCd0dCQwpJRUoxZ055Q3RtcW03bFQ2MVdOMUN2OHZ3dnlvTVNzeTBtUDNXR3FwZ0tqVXJMQThRY2lVdjZ2RVA2aEtxb2J6CjU2eTd1TGhUMzJhUTZqSnJLNXNXOG1XQlhoSVFwT0hQdldGL21PcnVQUmxRczhVcVJMMStNbXNYdHNaRS84NjgKYzBDYkgyMFZWaW91dkxOT1FRSURBUUFCCi0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQo==="
+government_private_key = settings.BLOCKCHAIN['government_private_key']
+government_public_key = settings.BLOCKCHAIN['government_public_key']
 
 # blockchain_url = 'http://localhost:5002/WeBASE-Front/trans/handle'  # 本地区块链服务地址
 # blockchain_url = 'http://175.178.154.217:5002/WeBASE-Front/trans/handle'  # 云端区块链服务地址
@@ -65,7 +65,6 @@ class Contract:
         if not self.user_private_key: raise Exception("user_private_key为None")
         if not self.user_public_key: raise Exception("user_public_key为None")
         if not self.now_certificate: raise Exception("now_certificate为None")
-
         data = {
             "groupId": "1",
             "user": "",
@@ -98,6 +97,10 @@ class Contract:
                                     "type": "string"
                                 },
                                 {
+                                    "name": "signature",
+                                    "type": "string"
+                                },
+                                {
                                     "name": "id",
                                     "type": "string"
                                 },
@@ -110,11 +113,11 @@ class Contract:
                                     "type": "string"
                                 },
                                 {
-                                    "name": "eth_group",
+                                    "name": "date_of_birth",
                                     "type": "string"
                                 },
                                 {
-                                    "name": "addr",
+                                    "name": "country",
                                     "type": "string"
                                 },
                                 {
@@ -122,11 +125,11 @@ class Contract:
                                     "type": "string"
                                 },
                                 {
-                                    "name": "date_of_birth",
+                                    "name": "issuing_authority",
                                     "type": "string"
                                 },
                                 {
-                                    "name": "authority",
+                                    "name": "issuing_country",
                                     "type": "string"
                                 },
                                 {
@@ -142,15 +145,15 @@ class Contract:
                                     "type": "string"
                                 },
                                 {
-                                    "name": "preid",
+                                    "name": "prepp",
                                     "type": "string"
                                 },
                                 {
-                                    "name": "futureid",
+                                    "name": "futurepp",
                                     "type": "string"
                                 },
                                 {
-                                    "name": "pp",
+                                    "name": "idcard",
                                     "type": "string"
                                 }
                             ],
@@ -169,12 +172,20 @@ class Contract:
             "cnsName": ""
         }
         try:
-            res = requests.post(blockchain_url, json=data)  # 发送请求
+            res = requests.post(blockchain_url, json=data)
+            # 发送请求
             data = json.loads(res.json()[0])
             for i in range(len(data)):
-                # 对item[2:]进行解密,因为前两个是公钥，不需要解密
+                # 验证签名
+                if not verify_signature(decrypt_message(data[i][3], self.user_private_key), data[i][2], government_public_key):
+                    data[i] = None
+                    print("签名验证失败", data[i])
+                    continue
+
+                # 对item[3:]进行解密,因为前两个是公钥,第三个是签名，不需要解密
                 # 注:这里用用户的私钥解密，因为这个加密是使用用户的公钥进行加密的
-                data[i] = [decrypt_message(_, self.user_private_key) for _ in data[i][2:]]
+                data[i] = [decrypt_message(_, self.user_private_key) for _ in data[i][3:]]
+            data = [i for i in data if i]  # 去掉签名验证失败的数据
             # print("get_data", res.status_code, len(data), data, self.now_certificate)
             return data
         except:

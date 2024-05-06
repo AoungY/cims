@@ -1,7 +1,12 @@
+from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from cims_server.utils.utils import encrypt_message
+from cims_server.utils.utils import sign_message
+
+# 政府角色公私钥 长度1024
+government_private_key = settings.BLOCKCHAIN['government_private_key']
 
 
 class Base(models.Model):
@@ -15,7 +20,7 @@ class Base(models.Model):
     issuing_authority = models.CharField(max_length=40, verbose_name="颁发机构")
     valid_from = models.DateField(verbose_name="有效期起始日")
     valid_to = models.DateField(verbose_name="有效期终止日")
-    photo = models.ImageField(upload_to='photos/',verbose_name="照片")  # 需要配置MEDIA_ROOT
+    photo = models.ImageField(upload_to='photos/', verbose_name="照片")  # 需要配置MEDIA_ROOT
     document_number = models.CharField(max_length=64, verbose_name="证件编号")  # 当前证件内容(除去照片和指针)字符串拼接后再进行一次sha256的值
     previous_document_number = models.CharField(max_length=64, blank=True, null=True, verbose_name="前证件编号")  # 若没有则为null
     next_document_number = models.CharField(max_length=64, blank=True, null=True, verbose_name="未来证件编号")  # 当前证件编号再次进行一次sha256
@@ -49,6 +54,7 @@ class IdentityCard(Base):
     def get_func_param(self):
         arr = [getattr(self, field) for field in self.fields]
         arr = [encrypt_message(str(i), self.ordinary_user.public_key) for i in arr]
+        arr.insert(0, sign_message(self.document_number, government_private_key))
         res = '"' + '","'.join(map(str, arr)) + '"'
         return res
 
@@ -86,6 +92,7 @@ class Passport(Base):
     def get_func_param(self):
         arr = [getattr(self, field) for field in self.fields]
         arr = [encrypt_message(str(i), self.ordinary_user.public_key) for i in arr]
+        arr.insert(0, sign_message(self.document_number, government_private_key))
         res = '"' + '","'.join(map(str, arr)) + '"'
         return res
 
